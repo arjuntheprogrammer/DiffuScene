@@ -42,7 +42,7 @@ class ThreedFront(BaseDataset):
                 self._objfeats_32 = bounds["objfeats_32"]
             else:
                 self._objfeats_32 = (np.array([1]), np.array([-1]), np.array([1])) # std, min, max
-        
+
         self._max_length = None
 
     def __str__(self):
@@ -104,7 +104,7 @@ class ThreedFront(BaseDataset):
         all_objfeats_32 = np.stack(all_objfeats_32, axis=0)
         _objfeat_std, _objfeat_min, _objfeat_max = np.array([all_objfeats.flatten().std()]), np.array([all_objfeats.min()]), np.array([all_objfeats.max()])
         _objfeat_32_std, _objfeat_32_min, _objfeat_32_max = np.array([all_objfeats_32.flatten().std()]), np.array([all_objfeats_32.min()]), np.array([all_objfeats_32.max()])
-            
+
         self._sizes = (_size_min, _size_max)
         self._centroids = (_centroid_min, _centroid_max)
         self._angles = (_angle_min, _angle_max)
@@ -138,7 +138,7 @@ class ThreedFront(BaseDataset):
         if self._angles is None:
             self._compute_bounds()
         return self._angles
-    
+
     @property
     def objfeats(self):
         if self._objfeats is None:
@@ -216,13 +216,18 @@ class ThreedFront(BaseDataset):
         return self._max_length
 
     @classmethod
-    def from_dataset_directory(cls, dataset_directory, path_to_model_info,
-                               path_to_models, path_to_room_masks_dir=None,
-                               path_to_bounds=None, filter_fn=lambda s: s):
+    def from_dataset_directory(cls, dataset_directory,
+                               path_to_model_info,
+                               path_to_models,
+                               output_directory=None,
+                               path_to_room_masks_dir=None,
+                               path_to_bounds=None, filter_fn=lambda s: s,
+                               ):
         scenes = parse_threed_front_scenes(
             dataset_directory,
             path_to_model_info,
             path_to_models,
+            output_directory,
             path_to_room_masks_dir
         )
         bounds = None
@@ -278,7 +283,7 @@ class CachedThreedFront(ThreedFront):
 
         # add it for scene_type
         self._parse_train_stats(config["train_stats"])
-        
+
         self._tags = sorted([
             oi
             for oi in os.listdir(self._base_dir)
@@ -295,7 +300,7 @@ class CachedThreedFront(ThreedFront):
         )
         if not os.path.isfile(path_to_rendered_scene):
             rendered_scene = "rendered_scene_256_no_lamps.png"
-        
+
         path_to_rendered_scene = os.path.join(
             self._base_dir, self._tags[0], rendered_scene
         )
@@ -348,7 +353,7 @@ class CachedThreedFront(ThreedFront):
 
     def get_room_params(self, i):
         D = np.load(self._path_to_rooms[i])
-        
+
         room_rgb_2d = self.config.get('room_rgb_2d', False)
         if room_rgb_2d:
             room = self._get_room_rgb_2d(self._path_to_renders[i])
@@ -369,7 +374,7 @@ class CachedThreedFront(ThreedFront):
             data_dict[ "objfeats" ] = D["objfeats"]
         if "objfeats_32" in D.keys():
             data_dict[ "objfeats_32" ] = D["objfeats_32"]
-        
+
         return data_dict
 
     def __len__(self):
@@ -433,7 +438,7 @@ class CachedThreedFront(ThreedFront):
     @property
     def count_furniture(self):
         return self._count_furniture
-    
+
     #compute max_lenght for diffusion models
     @property
     def max_length(self):

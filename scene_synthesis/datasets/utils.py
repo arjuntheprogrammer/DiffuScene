@@ -11,7 +11,8 @@ from .threed_front_scene import Asset, ModelInfo, Room, ThreedFutureModel, \
 
 def parse_threed_front_scenes(
     dataset_directory, path_to_model_info, path_to_models,
-    path_to_room_masks_dir=None
+    output_directory=None,
+    path_to_room_masks_dir=None,
 ):
     if os.getenv("PATH_TO_SCENES"):
         print('loading pickled 3d front scenes from :', os.getenv("PATH_TO_SCENES"))
@@ -121,7 +122,13 @@ def parse_threed_front_scenes(
         print()
 
         scenes = sum(scenes, [])
-        pickle.dump(scenes, open("/cluster/balrog/jtang/3d_front_processed/threed_front.pkl", "wb")) #/tmp/threed_front.pkl
+        if(output_directory):
+            output_path = "{}/threed_front.pkl".format(
+                output_directory
+            )
+        else:
+            output_path =  "/tmp/threed_front.pkl"
+        pickle.dump(scenes, open(output_path, "wb"))
 
     return scenes
 
