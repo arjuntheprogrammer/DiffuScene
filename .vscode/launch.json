@@ -1,0 +1,107 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        // add cofig with arguments
+        {
+            "name": "train_objautoencoder.py",
+            "type": "debugpy",
+            "request": "launch",
+            // "program": "${file}",
+            "program": "/home/cto_auraml_com/Development/DiffuScene/scripts/train_objautoencoder.py",
+            "console": "integratedTerminal",
+            "args": [
+                "/home/cto_auraml_com/Development/DiffuScene/config/obj_autoencoder/bedrooms.yaml",
+                "/home/cto_auraml_com/Development/DiffuScene/experiment_dir",
+                "--experiment_tag",
+                "obj_autoencoder_bedroom"
+            ],
+            "justMyCode": false
+        },
+
+        // cd scripts
+        // python pickle_threed_fucture_pointcloud.py "experiment_dir" "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FRONT" "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model" "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/model_info.json" --dataset_filtering threed_front_bedroom
+        {
+            "name": "pickle_threed_fucture_pointcloud.py",
+            "cwd": "/home/cto_auraml_com/Development/DiffuScene/scripts/",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/home/cto_auraml_com/Development/DiffuScene/scripts/pickle_threed_fucture_pointcloud.py",
+            "console": "integratedTerminal",
+            "args": [
+                "experiment_dir",
+                "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FRONT",
+                "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model",
+                "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/model_info.json",
+                "--dataset_filtering",
+                "threed_front_bedroom"
+            ],
+            "justMyCode": false
+        },
+
+        // python generate_objautoencoder.py /home/cto_auraml_com/Development/DiffuScene/config/obj_autoencoder/bedrooms.yaml /home/cto_auraml_com/Development/DiffuScene/experiment_dir
+        {
+            "name": "generate_objautoencoder.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/home/cto_auraml_com/Development/DiffuScene/scripts/generate_objautoencoder.py",
+            "console": "integratedTerminal",
+            "args": [
+                "/home/cto_auraml_com/Development/DiffuScene/config/obj_autoencoder/bedrooms.yaml",
+                "/home/cto_auraml_com/Development/DiffuScene/experiment_dir",
+                "--experiment_tag",
+                "pretrained"
+            ],
+            "justMyCode": false
+        },
+        // config="/home/cto_auraml_com/Development/DiffuScene/config/uncond/diffusion_bedrooms_instancond_lat32_v.yaml"
+        // exp_name="bedrooms_uncond"
+        // weight_file="/home/cto_auraml_com/Development/DiffuScene/pretrained/bedrooms_uncond/bedrooms_uncond.pt"
+        // threed_future='/home/cto_auraml_com/Development/DiffuScene/3d_front_processed/threed_future_model_bedroom.pkl'
+        // python  generate_diffusion.py $config  $exp_dir/$exp_name/gen_top2down_notexture_nofloor $threed_future  --weight_file $weight_file \
+        //     --without_screen  --n_sequences 1 --render_top2down --save_mesh --no_texture --without_floor  --clip_denoised --retrive_objfeats
+        // python  generate_diffusion.py /home/cto_auraml_com/Development/DiffuScene/config/uncond/diffusion_bedrooms_instancond_lat32_v.yaml /home/cto_auraml_com/Development/DiffuScene/experiment_dir/bedrooms_uncond/gen_top2down_notexture_nofloor /home/cto_auraml_com/Development/DiffuScene/3d_front_processed/threed_future_model_bedroom.pkl --weight_file /home/cto_auraml_com/Development/DiffuScene/pretrained/bedrooms_uncond/bedrooms_uncond.pt --without_screen --n_sequences 1 --render_top2down --save_mesh --no_texture --without_floor --clip_denoised --retrive_objfeats
+        // train diffusion
+        {
+            "name": "generate_diffusion.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/home/cto_auraml_com/Development/DiffuScene/scripts/generate_diffusion.py",
+            "console": "integratedTerminal",
+            "args": [
+                "/home/cto_auraml_com/Development/DiffuScene/config/uncond/diffusion_bedrooms_instancond_lat32_v.yaml",
+                "/home/cto_auraml_com/Development/DiffuScene/experiment_dir/bedrooms_uncond/gen_top2down_notexture_nofloor",
+                "/home/cto_auraml_com/Development/DiffuScene/3d_front_processed/threed_future_model_bedroom.pkl",
+                "--weight_file",
+                "/home/cto_auraml_com/Development/DiffuScene/pretrained/bedrooms_uncond/bedrooms_uncond.pt",
+                "--without_screen",
+                "--n_sequences",
+                "1",
+                "--render_top2down",
+                "--save_mesh",
+                "--no_texture",
+                "--without_floor",
+                "--clip_denoised",
+                "--retrive_objfeats"
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "train_diffusion.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/home/cto_auraml_com/Development/DiffuScene/scripts/train_diffusion.py",
+            "console": "integratedTerminal",
+            "args": [
+                "/home/cto_auraml_com/Development/DiffuScene/config/uncond/diffusion_bedrooms_instancond_lat32_v.yaml",
+                "/home/cto_auraml_com/Development/DiffuScene/experiment_dir",
+                "--experiment_tag",
+                "diffusion_bedrooms_instancond_lat32_v"
+            ],
+            "justMyCode": false
+        }
+
+    ]
+}

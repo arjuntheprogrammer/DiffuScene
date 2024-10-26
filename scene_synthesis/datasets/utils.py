@@ -14,9 +14,10 @@ def parse_threed_front_scenes(
     output_directory=None,
     path_to_room_masks_dir=None,
 ):
-    if os.getenv("PATH_TO_SCENES"):
-        print('loading pickled 3d front scenes from :', os.getenv("PATH_TO_SCENES"))
-        scenes = pickle.load(open(os.getenv("PATH_TO_SCENES"), "rb"))
+    PATH_TO_SCENES = "/home/cto_auraml_com/Development/DiffuScene/experiment_dir/threed_front.pkl"
+    if PATH_TO_SCENES:
+        print('loading pickled 3d front scenes from :', PATH_TO_SCENES)
+        scenes = pickle.load(open(PATH_TO_SCENES, "rb"))
     else:
         # Parse the model info
         mf = ModelInfo.from_file(path_to_model_info)

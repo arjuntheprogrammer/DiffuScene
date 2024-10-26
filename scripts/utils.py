@@ -218,6 +218,19 @@ def get_colored_objects_in_scene(scene, colors, ignore_lamps=False):
 
 
 def render(scene, renderables, color, mode, frame_path=None):
+    """
+    Renders a scene with the given renderables and colors.
+
+    Parameters:
+    scene (Scene): The scene object to render.
+    renderables (list): A list of objects to be rendered in the scene.
+    color (list or None): A list of colors corresponding to each renderable. If a single color is provided, it will be applied to all renderables.
+    mode (str): The rendering mode to be applied to the renderables.
+    frame_path (str, optional): The file path to save the rendered frame. If None, the frame will not be saved.
+
+    Returns:
+    np.ndarray: A copy of the rendered frame.
+    """
     if color is not None:
         try:
             color[0][0]
@@ -316,7 +329,7 @@ def merge_meshes(meshes):
 
         vertices[vertex_offset:vertex_offset + current_vertices.shape[0]] = current_vertices
         triangles[triangle_offset:triangle_offset + current_triangles.shape[0]] = current_triangles + vertex_offset
-        vertex_colors[vertex_color_offset:vertex_color_offset + current_vertex_colors.shape[0]] = current_vertex_colors[:, 0:3] 
+        vertex_colors[vertex_color_offset:vertex_color_offset + current_vertex_colors.shape[0]] = current_vertex_colors[:, 0:3]
 
         vertex_offset += current_vertices.shape[0]
         triangle_offset += current_triangles.shape[0]
@@ -396,7 +409,7 @@ def render_to_folder(
         decoded_surf = None
         renderables, trimesh_meshes, model_jids = get_textured_objects_based_on_objfeats(
             bbox_params_t.numpy(), objects_dataset, np.array(dataset.class_labels), diffusion=diffusion, no_texture=args.no_texture,
-            query_objfeats=objfeats, query_surfs=decoded_surf, 
+            query_objfeats=objfeats, query_surfs=decoded_surf,
         )
     else:
         renderables, trimesh_meshes, model_jids = get_textured_objects(
@@ -406,13 +419,13 @@ def render_to_folder(
     if not args.without_floor:
         renderables += floor_plan
         trimesh_meshes += tr_floor
-        
-    
+
+
     if args.save_mesh:
         path_to_objs = os.path.join(args.output_directory, folder)
         if not os.path.exists(path_to_objs):
             os.mkdir(path_to_objs)
-            
+
         if args.no_texture:
             # save whole scene as a single mesh
             path_to_scene = os.path.join(args.output_directory, folder, filename+args.mesh_format)
@@ -424,12 +437,12 @@ def render_to_folder(
                 os.mkdir(path_to_scene)
             export_scene(path_to_scene, trimesh_meshes)
 
-    
+
     path_to_image_folder = os.path.join(args.output_directory, folder)
     if not os.path.exists(path_to_image_folder):
         os.mkdir(path_to_image_folder)
     path_to_image = os.path.join(args.output_directory, folder, filename + "_render.png")
-    
+
     if args.render_top2down:
         # render_top2down is render:
         render(
@@ -485,7 +498,7 @@ def render_scene_from_bbox_params(
         ],
         dim=-1
     ).cpu().numpy()
-    
+
     if args.retrive_objfeats:
         objfeats = boxes["objfeats"].cpu().numpy()
         if args.retrive_surface:
@@ -502,13 +515,13 @@ def render_scene_from_bbox_params(
 
         renderables, trimesh_meshes, model_jids = get_textured_objects_based_on_objfeats(
             bbox_params_t, objects_dataset, classes, diffusion=diffusion, no_texture=args.no_texture,
-            query_objfeats=objfeats, query_surfs=decoded_surf, 
+            query_objfeats=objfeats, query_surfs=decoded_surf,
         )
     else:
         renderables, trimesh_meshes, model_jids = get_textured_objects(
             bbox_params_t, objects_dataset, classes, diffusion=diffusion, no_texture=args.no_texture,
         )
-        
+
     if not args.without_floor:
         renderables += floor_plan
         trimesh_meshes += tr_floor
@@ -539,7 +552,7 @@ def render_scene_from_bbox_params(
             n_frames=args.n_frames,
             scene=scene
         )
-        
+
     if args.save_mesh:
         if trimesh_meshes is not None:
             if not os.path.exists(path_to_objs):
@@ -554,8 +567,8 @@ def render_scene_from_bbox_params(
                 if not os.path.exists(path_to_scene):
                     os.mkdir(path_to_scene)
                 export_scene(path_to_scene, trimesh_meshes)
-                
-                
+
+
 ## calcalte iou
 def axis_aligned_bbox_overlaps_3d(bboxes1,
                                   bboxes2,
@@ -666,15 +679,15 @@ def computer_intersection(trimeshes, judge_mesh_intersec=False):
     for i in range(len(trimeshes)):
         box = trimeshes[i].bounding_box.bounds.reshape(-1)
         box_list.append(box)
-    
+
     if len(box_list) >1:
         box_array = np.stack(box_list, axis=0).astype(np.float32)
     else:
         return len(trimeshes), 1, 0, 0, 0
-    
+
     box_tensor = torch.from_numpy(box_array[None, ])
     box_iou, overlap_ratio = axis_aligned_bbox_overlaps_3d(box_tensor, box_tensor)
-    
+
     box_iou = box_iou.squeeze(0).cpu().numpy()
 
     iou_list = []
@@ -703,7 +716,7 @@ def computer_intersection(trimeshes, judge_mesh_intersec=False):
 def judge_if_symmetry(box1, box2, size_diff=0.1, pos_diff=0.1):
     center1, size1 = (box1[3:6] + box1[0:3])/2.0,  (box1[3:6] - box1[0:3])/2.0
     center2, size2 = (box2[3:6] + box2[0:3])/2.0,  (box2[3:6] - box2[0:3])/2.0
-    
+
     if np.abs(size1-size2).max() < size_diff:
         if abs(center1[0]-center2[0]) < pos_diff or abs(center1[2]-center2[2]) < pos_diff:
             return True
@@ -743,5 +756,5 @@ def computer_symmetry(trimeshes, class_labels, model_jids=None):
                     if class1 == class2 and num_verts_list[i] == num_verts_list[j] and num_faces_list[i] == num_faces_list[j]:
                         if judge_if_symmetry(box1, box2):
                             num_symmetry += 1
-                
+
     return num_symmetry

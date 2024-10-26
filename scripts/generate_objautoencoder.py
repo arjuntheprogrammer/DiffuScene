@@ -97,17 +97,18 @@ def main(argv):
         args.output_directory,
         experiment_tag
     )
+    os.makedirs(experiment_directory, exist_ok=True)
 
     # Parse the config file
     config = load_config(args.config_file)
 
-    scenes_train_dataset = ThreedFront.from_dataset_directory(
-        dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
-        path_to_model_info=config["data"]["path_to_model_info"],
-        path_to_models=config["data"]["path_to_3d_future_dataset_directory"],
-        filter_fn=filter_function(config["data"], config["training"].get("splits", ["train", "val"]), config["data"]["without_lamps"])
-    )
-    print("Loading train dataset with {} rooms".format(len(scenes_train_dataset)))
+    # scenes_train_dataset = ThreedFront.from_dataset_directory(
+    #     dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
+    #     path_to_model_info=config["data"]["path_to_model_info"],
+    #     path_to_models=config["data"]["path_to_3d_future_dataset_directory"],
+    #     filter_fn=filter_function(config["data"], config["training"].get("splits", ["train", "val"]), config["data"]["without_lamps"])
+    # )
+    # print("Loading train dataset with {} rooms".format(len(scenes_train_dataset)))
 
     scenes_validation_dataset = ThreedFront.from_dataset_directory(
         dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
@@ -118,12 +119,12 @@ def main(argv):
     print("Loading validation dataset with {} rooms".format(len(scenes_validation_dataset)))
 
     # Collect the set of objects in the scenes
-    train_objects = {}
-    for scene in scenes_train_dataset:
-        for obj in scene.bboxes:
-            train_objects[obj.model_jid] = obj
-    train_objects = [vi for vi in train_objects.values()]
-    train_dataset = ThreedFutureNormPCDataset(train_objects)
+    # train_objects = {}
+    # for scene in scenes_train_dataset:
+    #     for obj in scene.bboxes:
+    #         train_objects[obj.model_jid] = obj
+    # train_objects = [vi for vi in train_objects.values()]
+    # train_dataset = ThreedFutureNormPCDataset(train_objects)
 
     validation_objects = {}
     for scene in scenes_validation_dataset:
@@ -133,16 +134,16 @@ def main(argv):
     validation_dataset = ThreedFutureNormPCDataset(validation_objects)
 
 
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=config["training"].get("batch_size", 128),
-        num_workers=args.n_processes,
-        collate_fn=train_dataset.collate_fn,
-        shuffle=True
-    )
-    print("Loaded {} train objects".format(
-        len(train_dataset))
-    )
+    # train_loader = DataLoader(
+    #     train_dataset,
+    #     batch_size=config["training"].get("batch_size", 128),
+    #     num_workers=args.n_processes,
+    #     collate_fn=train_dataset.collate_fn,
+    #     shuffle=True
+    # )
+    # print("Loaded {} train objects".format(
+    #     len(train_dataset))
+    # )
 
     val_loader = DataLoader(
         validation_dataset,
@@ -170,12 +171,12 @@ def main(argv):
     print(f"Number of parameters in {network.__class__.__name__}:  {n_trainable_params} / {n_all_params}")
 
     # Build an optimizer object to compute the gradients of the parameters
-    optimizer = optimizer_factory(config["training"], filter(lambda p: p.requires_grad, network.parameters()) ) 
+    optimizer = optimizer_factory(config["training"], filter(lambda p: p.requires_grad, network.parameters()) )
 
     # Load the checkpoints if they exist in the experiment directory
     load_checkpoints(network, optimizer, experiment_directory, args, device)
-    # Load the learning rate scheduler 
-    lr_scheduler = schedule_factory(config["training"])
+    # Load the learning rate scheduler
+    # lr_scheduler = schedule_factory(config["training"])
 
     generation_directory = os.path.join(
         args.output_directory,
@@ -221,7 +222,7 @@ def main(argv):
                 np.savez(filename_lats, latent=lat_i)
 
             print('iter {}'.format(b), lat.shape, lat.min(), lat.max(), rec.shape)
-            
+
         lat_all = torch.cat(lat_list, dim=0)
         print('before: std {}, min {}, max {}'.format(lat_all.flatten().std(), lat_all.min(), lat_all.max()) )
         scale_factor = 1.0 / lat_all.flatten().std()

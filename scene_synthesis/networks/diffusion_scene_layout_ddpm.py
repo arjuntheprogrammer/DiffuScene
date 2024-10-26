@@ -69,7 +69,7 @@ class DiffusionSceneLayout_DDPM(Module):
         )
         self.n_classes = n_classes
         self.config = config
-        
+
         # read object property dimension
         self.objectness_dim = config.get("objectness_dim", 1)
         self.class_dim = config.get("class_dim", 21)
@@ -84,7 +84,7 @@ class DiffusionSceneLayout_DDPM(Module):
         self.instance_condition = config.get("instance_condition", False)
         self.sample_num_points = config.get("sample_num_points", 12)
         self.instance_emb_dim = config.get("instance_emb_dim", 64)
-        
+
         if self.learnable_embedding:
             if self.instance_condition:
                 self.register_parameter(
@@ -93,7 +93,7 @@ class DiffusionSceneLayout_DDPM(Module):
                 )
             else:
                 self.instance_emb_dim = 0
-    
+
         else:
             if self.instance_condition:
                 self.fc_instance_condition = nn.Sequential(
@@ -147,22 +147,22 @@ class DiffusionSceneLayout_DDPM(Module):
         # get desired diffusion target
         if self.config["point_dim"] == self.bbox_dim+self.class_dim+self.objectness_dim+self.objfeat_dim:
             if self.objectness_dim>0:
-                room_layout_target = torch.cat([translations, sizes, angles, class_labels, objectness], dim=-1).contiguous()   
+                room_layout_target = torch.cat([translations, sizes, angles, class_labels, objectness], dim=-1).contiguous()
             else:
-                room_layout_target = torch.cat([translations, sizes, angles, class_labels], dim=-1).contiguous() 
+                room_layout_target = torch.cat([translations, sizes, angles, class_labels], dim=-1).contiguous()
             if self.objfeat_dim > 0:
-                room_layout_target = torch.cat([room_layout_target, objfeats], dim=-1).contiguous() 
+                room_layout_target = torch.cat([room_layout_target, objfeats], dim=-1).contiguous()
 
         elif self.config["point_dim"] == self.bbox_dim:
-            room_layout_target = torch.cat([translations, sizes, angles], dim=-1).contiguous()  
-    
+            room_layout_target = torch.cat([translations, sizes, angles], dim=-1).contiguous()
+
         else:
             raise NotImplementedError
 
         # get the latent feature of room_mask
         if self.room_mask_condition:
             room_layout_f = self.fc_room_f(self.feature_extractor(room_layout)) #(B, F)
-            
+
         else:
             room_layout_f = None
 
@@ -175,7 +175,7 @@ class DiffusionSceneLayout_DDPM(Module):
                 instan_condition_f = self.positional_embedding[instance_indices, :]
             else:
                 instance_label = torch.eye(self.sample_num_points).float().to(device)[None, ...].repeat(batch_size, 1, 1)
-                instan_condition_f = self.fc_instance_condition(instance_label) 
+                instan_condition_f = self.fc_instance_condition(instance_label)
         else:
             instan_condition_f = None
 
@@ -209,7 +209,7 @@ class DiffusionSceneLayout_DDPM(Module):
         # use text embed for cross attention
         if self.text_condition:
             if self.text_glove_embedding:
-                condition_cross = self.fc_text_f( sample_params["desc_emb"] ) 
+                condition_cross = self.fc_text_f( sample_params["desc_emb"] )
             elif self.text_clip_embedding:
                 tokenized = clip.tokenize(sample_params["description"]).to(device)
                 condition_cross = self.clip_model.encode_text(tokenized)
@@ -225,8 +225,8 @@ class DiffusionSceneLayout_DDPM(Module):
 
         return loss, loss_dict
 
-    def sample(self, room_mask, num_points, point_dim, batch_size=1, text=None, 
-               partial_boxes=None, input_boxes=None, ret_traj=False, ddim=False, clip_denoised=False, freq=40, batch_seeds=None, 
+    def sample(self, room_mask, num_points, point_dim, batch_size=1, text=None,
+               partial_boxes=None, input_boxes=None, ret_traj=False, ddim=False, clip_denoised=False, freq=40, batch_seeds=None,
                 ):
         device = room_mask.device
         noise = torch.randn((batch_size, num_points, point_dim))#, device=room_mask.device)
@@ -234,7 +234,7 @@ class DiffusionSceneLayout_DDPM(Module):
         # get the latent feature of room_mask
         if self.room_mask_condition:
             room_layout_f = self.fc_room_f(self.feature_extractor(room_mask)) #(B, F)
-            
+
         else:
             room_layout_f = None
 
@@ -245,12 +245,12 @@ class DiffusionSceneLayout_DDPM(Module):
                 instan_condition_f = self.positional_embedding[instance_indices, :]
             else:
                 instance_label = torch.eye(self.sample_num_points).float().to(device)[None, ...].repeat(room_mask.size(0), 1, 1)
-                instan_condition_f = self.fc_instance_condition(instance_label) 
+                instan_condition_f = self.fc_instance_condition(instance_label)
         else:
             instan_condition_f = None
 
 
-        # concat instance and class condition   
+        # concat instance and class condition
         # concat room_layout_f and instan_class_f
         if room_layout_f is not None and instan_condition_f is not None:
             condition = torch.cat([room_layout_f[:, None, :].repeat(1, num_points, 1), instan_condition_f], dim=-1).contiguous()
@@ -289,7 +289,7 @@ class DiffusionSceneLayout_DDPM(Module):
                 condition_cross = self.fc_text_f( text_f )
         else:
             condition_cross = None
-            
+
 
         if input_boxes is not None:
             print('scene arrangement sampling')
@@ -306,19 +306,19 @@ class DiffusionSceneLayout_DDPM(Module):
                 samples = self.diffusion.gen_sample_traj(noise.shape, room_mask.device, freq=freq, condition=condition, condition_cross=condition_cross, clip_denoised=clip_denoised)
             else:
                 samples = self.diffusion.gen_samples(noise.shape, room_mask.device, condition=condition, condition_cross=condition_cross, clip_denoised=clip_denoised)
-            
+
         return samples
 
     @torch.no_grad()
     def generate_layout(self, room_mask, num_points, point_dim, batch_size=1, text=None, ret_traj=False, ddim=False, clip_denoised=False, batch_seeds=None, device="cpu", keep_empty=False):
-        
+
         samples = self.sample(room_mask, num_points, point_dim, batch_size, text=text, ret_traj=ret_traj, ddim=ddim, clip_denoised=clip_denoised, batch_seeds=batch_seeds)
-        
+
         return self.delete_empty_from_network_samples(samples, device=device, keep_empty=keep_empty)
 
     @torch.no_grad()
     def generate_layout_progressive(self, room_mask, num_points, point_dim, batch_size=1, text=None, ret_traj=False, ddim=False, clip_denoised=False, batch_seeds=None, device="cpu", keep_empty=False, num_step=100):
-        
+
         # output dictionary of sample trajectory & sample some key steps
         samples_traj = self.sample(room_mask, num_points, point_dim, batch_size, text=text, ret_traj=ret_traj, ddim=ddim, clip_denoised=clip_denoised, batch_seeds=batch_seeds, freq=num_step)
         boxes_traj = {}
@@ -331,26 +331,26 @@ class DiffusionSceneLayout_DDPM(Module):
             k_time = num_step * i
             boxes_traj[k_time] = self.delete_empty_from_network_samples(samples, device=device, keep_empty=keep_empty)
         return boxes_traj
-    
+
     @torch.no_grad()
     def complete_scene(self, room_mask, num_points, point_dim, partial_boxes, batch_size=1, ret_traj=False, ddim=False, clip_denoised=False, batch_seeds=None, device="cpu", keep_empty=False):
-        
+
         samples = self.sample(room_mask, num_points, point_dim, batch_size, partial_boxes=partial_boxes, ret_traj=ret_traj, ddim=ddim, clip_denoised=clip_denoised, batch_seeds=batch_seeds)
 
         return self.delete_empty_from_network_samples(samples, device=device, keep_empty=keep_empty)
-    
+
     @torch.no_grad()
     def arrange_scene(self, room_mask, num_points, point_dim, input_boxes, batch_size=1, ret_traj=False, ddim=False, clip_denoised=False, batch_seeds=None, device="cpu", keep_empty=False):
-        
+
         samples = self.sample(room_mask, num_points, point_dim, batch_size, input_boxes=input_boxes, ret_traj=ret_traj, ddim=ddim, clip_denoised=clip_denoised, batch_seeds=batch_seeds)
 
         return self.delete_empty_from_network_samples(samples, device=device, keep_empty=keep_empty)
-    
-    
+
+
 
     @torch.no_grad()
     def delete_empty_from_network_samples(self, samples, device="cpu", keep_empty=False):
-        
+
         samples_dict = {
             "translations": samples[:, :, 0:self.translation_dim].contiguous(),
             "sizes": samples[:, :,  self.translation_dim:self.translation_dim+self.size_dim].contiguous(),
@@ -372,10 +372,10 @@ class DiffusionSceneLayout_DDPM(Module):
         }
         if self.objfeat_dim > 0:
             boxes["objfeats"] =  torch.zeros(1, 0, self.objfeat_dim, device=device)
-    
+
         max_boxes = samples.shape[1]
         for i in range(max_boxes):
-            # Check if we have the end symbol 
+            # Check if we have the end symbol, if objectness is true, we don't keep the box
             if not keep_empty and samples_dict['objectness'][0, i, -1] > 0:
                 continue
             else:
@@ -390,7 +390,7 @@ class DiffusionSceneLayout_DDPM(Module):
         if self.objfeat_dim > 0:
             return {
             "class_labels": boxes["class_labels"].to("cpu"),
-            #"objectness": boxes["objectness"].to("cpu"),
+            "objectness": boxes["objectness"].to("cpu"),
             "translations": boxes["translations"].to("cpu"),
             "sizes": boxes["sizes"].to("cpu"),
             "angles": boxes["angles"].to("cpu"),
@@ -399,7 +399,7 @@ class DiffusionSceneLayout_DDPM(Module):
         else:
             return {
                 "class_labels": boxes["class_labels"].to("cpu"),
-                #"objectness": boxes["objectness"].to("cpu"),
+                "objectness": boxes["objectness"].to("cpu"),
                 "translations": boxes["translations"].to("cpu"),
                 "sizes": boxes["sizes"].to("cpu"),
                 "angles": boxes["angles"].to("cpu")
@@ -419,10 +419,10 @@ class DiffusionSceneLayout_DDPM(Module):
         }
         if self.objfeat_dim > 0:
             boxes["objfeats"] =  torch.zeros(1, 0, self.objfeat_dim, device=device)
-    
+
         max_boxes = samples_dict["class_labels"].shape[1]
         for i in range(max_boxes):
-            # Check if we have the end symbol 
+            # Check if we have the end symbol
             if not keep_empty and samples_dict['class_labels'][0, i, -1] > 0:
                 continue
             else:
@@ -434,7 +434,7 @@ class DiffusionSceneLayout_DDPM(Module):
                     else:
                         boxes[k] = torch.cat([ boxes[k], samples_dict[k][:, i:i+1, :].to(device) ], dim=1)
 
-        
+
         if self.objfeat_dim > 0:
                 return {
                 "class_labels": boxes["class_labels"].to("cpu"),

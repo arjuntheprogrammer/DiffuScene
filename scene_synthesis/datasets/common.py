@@ -173,7 +173,8 @@ class BaseDataset(Dataset):
         def inner(scene):
             for b in scene.bboxes:
                 if b.label not in objects:
-                    print(b.label)
+                    ...
+                    # print(b.label)
             return (
                 scene if all(b.label in objects for b in scene.bboxes)
                 else False

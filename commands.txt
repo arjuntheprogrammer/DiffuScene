@@ -1,0 +1,54 @@
+cd ./scripts
+
+exp_dir="/home/cto_auraml_com/Development/DiffuScene/experiment_dir_obj_autoencoder"
+
+#### bedrooms
+config="/home/cto_auraml_com/Development/DiffuScene/config/uncond/diffusion_bedrooms_instancond_lat32_v.yaml"
+
+exp_name="obj_autoencoder_bedroom"
+
+python train_diffusion.py $config $exp_dir --experiment_tag $exp_name  --with_wandb_logger
+
+#### diningrooms
+# config="../config/uncond/diffusion_diningrooms_instancond_lat32_v.yaml"
+# exp_name="diffusion_diningrooms_instancond_lat32_v"
+# python train_diffusion.py $config $exp_dir --experiment_tag $exp_name  --with_wandb_logger
+
+#### livingrooms
+# config="../config/uncond/diffusion_livingrooms_instancond_lat32_v.yaml"
+# exp_name="diffusion_livingrooms_instancond_lat32_v"
+# python train_diffusion.py $config $exp_dir --experiment_tag $exp_name  --with_wandb_logger
+
+################################################################################
+
+python pickle_threed_future_pointcloud.py path_to_output_dir path_to_3d_front_dataset_dir path_to_3d_future_dataset_dir path_to_3d_future_model_info --dataset_filtering room_type
+
+
+python pickle_threed_fucture_pointcloud.py "experiment_dir_pointcloud" "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FRONT" "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model" "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/model_info.json" --dataset_filtering threed_front_bedroom
+
+
+
+
+################################################################################
+# generate_diffusion 'bedrooms'
+config="/home/cto_auraml_com/Development/DiffuScene/config/uncond/diffusion_bedrooms_instancond_lat32_v.yaml"
+exp_name="bedrooms_uncond"
+weight_file="/home/cto_auraml_com/Development/DiffuScene/pretrained/bedrooms_uncond/bedrooms_uncond.pt"
+threed_future='/home/cto_auraml_com/Development/DiffuScene/3d_front_processed/threed_future_model_bedroom.pkl'
+
+python  generate_diffusion.py $config  $exp_dir/$exp_name/gen_top2down_notexture_nofloor $threed_future  --weight_file $weight_file \
+    --without_screen  --n_sequences 1 --render_top2down --save_mesh --no_texture --without_floor  --clip_denoised --retrive_objfeats
+
+
+
+################################################################################
+
+## generate_objautoencoder.py
+python generate_objautoencoder.py /home/cto_auraml_com/Development/DiffuScene/config/obj_autoencoder/bedrooms.yaml /home/cto_auraml_com/Development/DiffuScene/experiment_dir
+
+
+
+class labels: ['armchair' 'bookshelf' 'cabinet' 'ceiling_lamp' 'chair'
+ 'children_cabinet' 'coffee_table' 'desk' 'double_bed' 'dressing_chair'
+ 'dressing_table' 'kids_bed' 'nightstand' 'pendant_lamp' 'shelf'
+ 'single_bed' 'sofa' 'stool' 'table' 'tv_stand' 'wardrobe' 'start' 'end']

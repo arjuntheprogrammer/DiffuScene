@@ -60,6 +60,9 @@ def yield_forever(iterator):
 
 
 def load_checkpoints(model, optimizer, experiment_directory, args, device):
+    # # load model from .pt file in experiment directory
+    # model.load_state_dict(torch.load(os.path.join(experiment_directory, "bed_living_diningrooms_lat32.pt"), map_location=device))
+
     model_files = [
         f for f in os.listdir(experiment_directory)
         if f.startswith("model_")

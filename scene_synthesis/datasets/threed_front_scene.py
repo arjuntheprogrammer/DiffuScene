@@ -96,7 +96,7 @@ class ModelInfo(object):
 
                 self._model_info[m["model_id"]] = Asset(
                     super_cat,
-                    cat, 
+                    cat,
                     m["style"],
                     m["theme"],
                     m["material"]
@@ -168,7 +168,7 @@ class BaseThreedFutureModel(object):
             m = self.raw_model_transformed(offset)
             return Mesh.from_faces(m.vertices, m.faces, colors=colors)
         else:
-            m = TexturedMesh.from_file(self.raw_model_path)
+            m = TexturedMesh.from_file(self.raw_model_path.replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/"))
             m.scale(self.scale)
             # Extract the predicted affine transformation to position the
             # mesh
@@ -199,7 +199,7 @@ class ThreedFutureModel(BaseThreedFutureModel):
     ):
         super().__init__(model_uid, model_jid, position, rotation, scale)
         self.model_info = model_info
-        self.path_to_models = path_to_models
+        self.path_to_models = "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model"
         self._label = None
 
     @property
@@ -208,7 +208,7 @@ class ThreedFutureModel(BaseThreedFutureModel):
             self.path_to_models,
             self.model_jid,
             "raw_model.obj"
-        )
+        ).replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/")
 
     # add normalized point cloud of raw_model
     @property
@@ -217,7 +217,7 @@ class ThreedFutureModel(BaseThreedFutureModel):
             self.path_to_models,
             self.model_jid,
             "raw_model_norm_pc.npz"
-        )
+        ).replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/")
 
     @property
     def raw_model_norm_pc_lat_path(self):
@@ -225,7 +225,7 @@ class ThreedFutureModel(BaseThreedFutureModel):
             self.path_to_models,
             self.model_jid,
             "raw_model_norm_pc_lat.npz"
-        )
+        ).replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/")
 
     @property
     def raw_model_norm_pc_lat32_path(self):
@@ -233,9 +233,7 @@ class ThreedFutureModel(BaseThreedFutureModel):
             self.path_to_models,
             self.model_jid,
             "raw_model_norm_pc_lat32.npz"
-        )
-    
-
+        ).replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/")
 
     @property
     def texture_image_path(self):
@@ -243,7 +241,7 @@ class ThreedFutureModel(BaseThreedFutureModel):
             self.path_to_models,
             self.model_jid,
             "texture.png"
-        )
+        ).replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/")
 
     @property
     def path_to_bbox_vertices(self):
@@ -251,25 +249,26 @@ class ThreedFutureModel(BaseThreedFutureModel):
             self.path_to_models,
             self.model_jid,
             "bbox_vertices.npy"
-        )
+        ).replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/")
 
     # add normalized point cloud of raw_model
     def raw_model_norm_pc(self):
         points = np.load(self.raw_model_norm_pc_path)["points"].astype(np.float32)
         return points
-    
+
     def raw_model_norm_pc_lat(self):
         latent = np.load(self.raw_model_norm_pc_lat_path)["latent"].astype(np.float32)
         return latent
 
     def raw_model_norm_pc_lat32(self):
-        latent = np.load(self.raw_model_norm_pc_lat32_path)["latent"].astype(np.float32)
+        new_path = self.raw_model_norm_pc_lat32_path.replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/")
+        latent = np.load(new_path)["latent"].astype(np.float32)
         return latent
 
     def raw_model(self):
         try:
             return trimesh.load(
-                self.raw_model_path,
+                self.raw_model_path.replace("/cluster/balrog/jtang/3D-FUTURE-model/", "/home/cto_auraml_com/Development/DiffuScene/3D-FRONT/3D-FUTURE-model/"),
                 process=False,
                 force="mesh",
                 skip_materials=True,

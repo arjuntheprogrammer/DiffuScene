@@ -1,10 +1,10 @@
-# 
+#
 # Copyright (C) 2021 NVIDIA Corporation.  All rights reserved.
 # Licensed under the NVIDIA Source Code License.
 # See LICENSE at https://github.com/nv-tlabs/ATISS.
 # Authors: Despoina Paschalidou, Amlan Kar, Maria Shugrina, Karsten Kreis,
 #          Andreas Geiger, Sanja Fidler
-# 
+#
 
 """Script used for generating scenes using a previously trained model."""
 import argparse
@@ -206,7 +206,7 @@ def main(argv):
         print('NO PERM AUG in test')
         config["data"]["encoding_type"] = config["data"]["encoding_type"] + "_no_prm"
     print('encoding type :', config["data"]["encoding_type"])
-    ####### 
+    #######
 
     raw_dataset, train_dataset = get_dataset_raw_and_encoded(
         config["data"],
@@ -248,7 +248,7 @@ def main(argv):
     # scene.light = args.camera_position
 
     # Create the scene and the behaviour list for simple-3dviz top-down orthographic rendering, the arguments are same as preprocess_data.py
-    if args.render_top2down:
+    if args.render_top2down==100:
         if args.without_floor:
             scene_top2down = Scene(size=(256, 256), background=[1,1,1,1])
         else:
@@ -287,7 +287,7 @@ def main(argv):
         BOX_IOU_ONLYSIZE = AverageAggregator()
         BOX_INSEC_ONLYSIZE= AverageAggregator()
         OVERLAP_RATIO_ONLYSIZE = AverageAggregator()
-        
+
 
     classes = np.array(dataset.class_labels)
     print('class labels:', classes, len(classes))
@@ -299,7 +299,7 @@ def main(argv):
                 scene_idx = given_scene_id or (i % len(dataset))
         else:
             scene_idx = given_scene_id or np.random.choice(len(dataset))
-            
+
         current_scene = raw_dataset[scene_idx]
         samples = dataset[scene_idx]
         print("{} / {}: Using the {} floor plan of scene {}".format(
@@ -316,7 +316,7 @@ def main(argv):
                 num_points=config["network"]["sample_num_points"],
                 point_dim=config["network"]["point_dim"],
                 #text=torch.from_numpy(samples['desc_emb'])[None, :].to(device) if 'desc_emb' in samples.keys() else None, # glove embedding
-                text=samples['description'] if 'description' in samples.keys() else None,  # bert 
+                text=samples['description'] if 'description' in samples.keys() else None,  # bert
                 device=device,
                 clip_denoised=args.clip_denoised,
                 batch_seeds=torch.arange(i, i+1),
@@ -337,7 +337,7 @@ def main(argv):
             print('shape retrieval based on obj latent feats')
 
             renderables, trimesh_meshes, model_jids = get_textured_objects_based_on_objfeats(
-                bbox_params_t, objects_dataset, classes, diffusion=True, no_texture=args.no_texture, query_objfeats=objfeats, 
+                bbox_params_t, objects_dataset, classes, diffusion=True, no_texture=args.no_texture, query_objfeats=objfeats,
             )
             renderables_onlysize, trimesh_meshes_onlysize, model_jids_onlysize = get_textured_objects(
                 bbox_params_t, objects_dataset, classes, diffusion=True, no_texture=args.no_texture
@@ -352,7 +352,7 @@ def main(argv):
             renderables += floor_plan
             trimesh_meshes += tr_floor
 
-        if args.render_top2down:
+        if args.render_top2down==100:
             path_to_image = "{}/{}_{}_{:03d}.png".format(
                 args.output_directory,
                 current_scene.scene_id,
@@ -366,7 +366,7 @@ def main(argv):
                 mode="shading",
                 frame_path=path_to_image,
             )
-            
+
             if args.retrive_objfeats:
                 # save results of only retrieving sizes
                 path_to_image_onlysize = "{}/{}".format(
@@ -390,7 +390,7 @@ def main(argv):
                     frame_path=path_to_image_onlysize,
                 )
 
-            
+
             if args.compute_intersec:
                 num_objects, num_pairs, avg_iou, avg_insec, overlap_ratio = computer_intersection(trimesh_meshes)
                 num_objects_counter.append(num_objects)

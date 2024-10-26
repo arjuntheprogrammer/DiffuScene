@@ -113,44 +113,45 @@ def main(argv):
         dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
         path_to_model_info=config["data"]["path_to_model_info"],
         path_to_models=config["data"]["path_to_3d_future_dataset_directory"],
+        output_directory=args.output_directory,
         filter_fn=filter_function(config["data"], config["training"].get("splits", ["train", "val"]), config["data"]["without_lamps"])
     )
     print("Loading train dataset with {} rooms".format(len(scenes_train_dataset)))
 
 
-    # add dining rooms
-    config2 = {
-        "filter_fn":                 "threed_front_diningroom",
-        "min_n_boxes":               -1,
-        "max_n_boxes":               -1,
-        "path_to_invalid_scene_ids": config["data"]["path_to_invalid_scene_ids"],
-        "path_to_invalid_bbox_jids": config["data"]["path_to_invalid_bbox_jids"],
-        "annotation_file":           "../config/diningroom_threed_front_splits.csv"
-    }
-    scenes_train_dataset2 = ThreedFront.from_dataset_directory(
-        dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
-        path_to_model_info=config["data"]["path_to_model_info"],
-        path_to_models=config["data"]["path_to_3d_future_dataset_directory"],
-        filter_fn=filter_function(config2, config["training"].get("splits", ["train", "val"]), config["data"]["without_lamps"])
-    )
-    print("Loading train dataset 2 with {} rooms".format(len(scenes_train_dataset2)))
+    # # add dining rooms
+    # config2 = {
+    #     "filter_fn":                 "threed_front_diningroom",
+    #     "min_n_boxes":               -1,
+    #     "max_n_boxes":               -1,
+    #     "path_to_invalid_scene_ids": config["data"]["path_to_invalid_scene_ids"],
+    #     "path_to_invalid_bbox_jids": config["data"]["path_to_invalid_bbox_jids"],
+    #     "annotation_file":           "../config/diningroom_threed_front_splits.csv"
+    # }
+    # scenes_train_dataset2 = ThreedFront.from_dataset_directory(
+    #     dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
+    #     path_to_model_info=config["data"]["path_to_model_info"],
+    #     path_to_models=config["data"]["path_to_3d_future_dataset_directory"],
+    #     filter_fn=filter_function(config2, config["training"].get("splits", ["train", "val"]), config["data"]["without_lamps"])
+    # )
+    # print("Loading train dataset 2 with {} rooms".format(len(scenes_train_dataset2)))
 
-    ## add living rooms
-    config3 = {
-        "filter_fn":                 "threed_front_livingroom",
-        "min_n_boxes":               -1,
-        "max_n_boxes":               -1,
-        "path_to_invalid_scene_ids": config["data"]["path_to_invalid_scene_ids"],
-        "path_to_invalid_bbox_jids": config["data"]["path_to_invalid_bbox_jids"],
-        "annotation_file":           "../config/livingroom_threed_front_splits.csv"
-    }
-    scenes_train_dataset3 = ThreedFront.from_dataset_directory(
-        dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
-        path_to_model_info=config["data"]["path_to_model_info"],
-        path_to_models=config["data"]["path_to_3d_future_dataset_directory"],
-        filter_fn=filter_function(config3, config["training"].get("splits", ["train", "val"]), config["data"]["without_lamps"])
-    )
-    print("Loading train dataset 3 with {} rooms".format(len(scenes_train_dataset3)))
+    # ## add living rooms
+    # config3 = {
+    #     "filter_fn":                 "threed_front_livingroom",
+    #     "min_n_boxes":               -1,
+    #     "max_n_boxes":               -1,
+    #     "path_to_invalid_scene_ids": config["data"]["path_to_invalid_scene_ids"],
+    #     "path_to_invalid_bbox_jids": config["data"]["path_to_invalid_bbox_jids"],
+    #     "annotation_file":           "../config/livingroom_threed_front_splits.csv"
+    # }
+    # scenes_train_dataset3 = ThreedFront.from_dataset_directory(
+    #     dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
+    #     path_to_model_info=config["data"]["path_to_model_info"],
+    #     path_to_models=config["data"]["path_to_3d_future_dataset_directory"],
+    #     filter_fn=filter_function(config3, config["training"].get("splits", ["train", "val"]), config["data"]["without_lamps"])
+    # )
+    # print("Loading train dataset 3 with {} rooms".format(len(scenes_train_dataset3)))
 
     scenes_validation_dataset = ThreedFront.from_dataset_directory(
         dataset_directory=config["data"]["path_to_3d_front_dataset_directory"],
@@ -165,14 +166,21 @@ def main(argv):
     for scene in scenes_train_dataset:
         for obj in scene.bboxes:
             train_objects[obj.model_jid] = obj
-    # diningroom
-    for scene in scenes_train_dataset2:
-        for obj in scene.bboxes:
-            train_objects[obj.model_jid] = obj
-    # livingroom
-    for scene in scenes_train_dataset3:
-        for obj in scene.bboxes:
-            train_objects[obj.model_jid] = obj
+
+    # print unique keys in train_objects
+    print("Unique keys in train_objects: ", len(train_objects.keys()))
+
+
+    # # diningroom
+    # for scene in scenes_train_dataset2:
+    #     for obj in scene.bboxes:
+    #         train_objects[obj.model_jid] = obj
+
+    # # livingroom
+    # for scene in scenes_train_dataset3:
+    #     for obj in scene.bboxes:
+    #         train_objects[obj.model_jid] = obj
+
     train_objects = [vi for vi in train_objects.values()]
     train_dataset = ThreedFutureNormPCDataset(train_objects)
 
@@ -180,6 +188,9 @@ def main(argv):
     for scene in scenes_validation_dataset:
         for obj in scene.bboxes:
             validation_objects[obj.model_jid] = obj
+
+    print("Unique keys in validation_objects: ", len(validation_objects.keys()))
+
     validation_objects = [vi for vi in validation_objects.values()]
     validation_dataset = ThreedFutureNormPCDataset(validation_objects)
 
@@ -225,7 +236,7 @@ def main(argv):
 
     # Load the checkpoints if they exist in the experiment directory
     load_checkpoints(network, optimizer, experiment_directory, args, device)
-    # Load the learning rate scheduler 
+    # Load the learning rate scheduler
     lr_scheduler = schedule_factory(config["training"])
 
     # Initialize the logger
